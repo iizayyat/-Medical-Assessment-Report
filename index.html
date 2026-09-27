@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تقرير فحص وتشخيص طبي - Medical Assessment Report</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
+
+        body {
+            background-color: #555;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        /* إعدادات الطباعة لضمان مقاس A4 */
+        @page {
+            size: A4;
+            margin: 0;
+        }
+
+        /* تنسيق صفحة الـ A4 مع تقليل الهوامش */
+        .page {
+            width: 210mm;
+            min-height: 297mm;
+            background-color: #fcf9e8;
+            padding: 15mm 15mm;
+            box-sizing: border-box;
+            box-shadow: 0 0 15px rgba(0,0,0,0.5);
+            color: #333;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* الترويسة العلوية مقسمة لـ 3 أجزاء متناسقة */
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #2c3e50;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        /* الجزء الأيمن: الشعار */
+        .header-right {
+            flex: 1;
+            text-align: right;
+        }
+
+        .header-logo {
+            max-width: 110px;
+            max-height: 110px;
+            object-fit: contain;
+        }
+
+        /* الجزء الأوسط: العنوان */
+        .header-center {
+            flex: 2;
+            text-align: center;
+        }
+
+        .header-center h1 {
+            margin: 0;
+            font-size: 24px;
+            color: #1a252f;
+        }
+
+        .header-center h2 {
+            margin: 0;
+            font-size: 18px;
+            color: #34495e;
+            font-weight: 600;
+            margin-top: 5px;
+        }
+
+        /* الجزء الأيسر: معلومات التاريخ والأرقام */
+        .header-left {
+            flex: 1;
+            text-align: left;
+            direction: ltr;
+            font-family: Arial, sans-serif;
+            font-size: 13px;
+            font-weight: bold;
+            color: #444;
+        }
+
+        .header-left div {
+            margin-bottom: 5px;
+            white-space: nowrap; /* يمنع النص والأرقام من النزول لسطر جديد */
+        }
+
+        .header-left input[type="date"] {
+            font-family: inherit;
+            border: 1px solid #ccc;
+            padding: 2px 5px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.5);
+            outline: none;
+            font-size: 13px;
+        }
+
+        .red-number {
+            color: #d32f2f;
+        }
+
+        /* تنسيق الحقول والنماذج */
+        .row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .col {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        label {
+            font-weight: 700;
+            white-space: nowrap;
+            color: #1a252f;
+            font-size: 14px;
+        }
+
+        input[type="text"], input[type="number"], select {
+            flex: 1;
+            background: transparent;
+            border: none;
+            border-bottom: 1px dashed #7f8c8d;
+            padding: 4px;
+            font-family: inherit;
+            font-size: 14px;
+            outline: none;
+            color: #2c3e50;
+        }
+
+        input[type="text"]:focus, input[type="number"]:focus, select:focus {
+            border-bottom: 1px solid #2980b9;
+        }
+
+        .section-title {
+            font-weight: 700;
+            background-color: #e8e3c8;
+            padding: 4px 10px;
+            border-radius: 4px;
+            margin: 10px 0 5px 0;
+            color: #2c3e50;
+            border-right: 4px solid #2c3e50;
+            font-size: 14px;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 45px;
+            background: transparent;
+            border: 1px dashed #7f8c8d;
+            border-radius: 4px;
+            padding: 8px;
+            font-family: inherit;
+            font-size: 14px;
+            resize: vertical;
+            box-sizing: border-box;
+            outline: none;
+            color: #2c3e50;
+            line-height: 1.5;
+            flex-grow: 1;
+        }
+
+        textarea:focus {
+            border: 1px solid #2980b9;
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        /* التوقيع والختم في الأسفل */
+        .footer {
+            margin-top: auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding: 20px 10px 0 10px;
+        }
+
+        .stamp-block, .signature-block {
+            text-align: center;
+            width: 200px;
+        }
+
+        .signature-block h3 {
+            margin: 0 0 5px 0;
+            font-size: 16px;
+            color: #1a252f;
+        }
+
+        .signature-img {
+            max-width: 160px;
+            mix-blend-mode: multiply;
+        }
+
+        .stamp-img {
+            max-width: 140px;
+            mix-blend-mode: multiply;
+            transform: rotate(-25deg);
+            opacity: 0.85;
+            margin-right: 20px;
+            margin-bottom: -15px;
+        }
+
+        /* إخفاء التنسيقات عند الطباعة */
+        @media print {
+            body { background: none; padding: 0; }
+            .page { 
+                box-shadow: none; 
+                margin: 0;
+                width: 210mm;
+                height: 297mm;
+                padding: 15mm;
+            }
+            input, textarea, select { border: none !important; resize: none; background: transparent !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page">
+        <!-- الترويسة العلوية المنسقة -->
+        <div class="header-section">
+            <!-- الجزء الأيمن (الشعار) -->
+            <div class="header-right">
+                <img src="https://github.com/iizayyat/MEDICAL-REPORT/blob/main/images/LOS.png?raw=true" class="header-logo" alt="شعار">
+            </div>
+
+            <!-- الجزء الأوسط (العنوان) -->
+            <div class="header-center">
+                <h1>تقرير فحص وتشخيص طبي</h1>
+                <h2>Medical Assessment Report</h2>
+            </div>
+
+            <!-- الجزء الأيسر (التاريخ والأرقام) -->
+            <div class="header-left">
+                <div>Date: <input type="date" id="report-date"></div>
+                <div>Report No.: <span id="report-number" class="red-number"></span></div>
+                <div>Status No.: <span id="status-number" class="red-number"></span></div>
+            </div>
+        </div>
+
+        <!-- معلومات المريض -->
+        <div class="row">
+            <div class="col" style="flex: 2;">
+                <label>اسم المريض \ المريضة:</label>
+                <input type="text" placeholder="أدخل اسم المريض الرباعي">
+            </div>
+            <div class="col">
+                <label>عمره:</label>
+                <input type="number" placeholder="العمر">
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col">
+                <label>القسم:</label>
+                <input type="text" placeholder="اسم القسم">
+            </div>
+            <div class="col">
+                <label>العيادة:</label>
+                <input type="text" placeholder="اسم العيادة">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <label>حالة المريض عند الوصول:</label>
+                <select id="condition-select">
+                    <option value="" disabled selected>اختر الحالة...</option>
+                    <option value="مستقرة">مستقرة</option>
+                    <option value="حرجة">حرجة</option>
+                    <option value="خطرة">خطرة</option>
+                    <option value="غائب عن الوعي">غائب عن الوعي</option>
+                    <option value="اخرى">أخرى (يُرجى التحديد)</option>
+                </select>
+                <input type="text" id="condition-other" style="display:none;" placeholder="اكتب حالة المريض هنا...">
+            </div>
+        </div>
+
+        <!-- الأقسام الطبية -->
+        <div class="section-title">سبب المراجعة</div>
+        <textarea placeholder="اكتب سبب المراجعة والأعراض التي يشتكي منها المريض..."></textarea>
+
+        <div class="section-title">التشخيص السريري</div>
+        <textarea placeholder="اكتب نتائج الفحص والتشخيص المبدئي..."></textarea>
+
+        <div class="section-title">الاجراءات الطبية</div>
+        <textarea placeholder="- الإجراء الأول&#10;- الإجراء الثاني&#10; (اكتب الإجراءات على شكل نقاط)..."></textarea>
+
+        <div class="section-title">التشخيص النهائي</div>
+        <textarea placeholder="اكتب التشخيص النهائي المؤكد للحالة..."></textarea>
+
+        <div class="section-title">فترة التعافي المتوقعة</div>
+        <textarea placeholder="اكتب الفترة المقترحة لتعافي المريض..."></textarea>
+
+        <div class="section-title">التوصيات</div>
+        <textarea placeholder="اكتب التوصيات، الأدوية الموصوفة، أو الإحالات..."></textarea>
+
+        <!-- التوقيع والختم -->
+        <div class="footer">
+            <!-- الجهة اليمنى للختم -->
+            <div class="stamp-block">
+                <img src="https://github.com/iizayyat/MEDICAL-REPORT/blob/main/images/DEEMA%20QH%20STAMP1.png?raw=true" class="stamp-img" alt="ختم المستشفى">
+            </div>
+            <!-- الجهة اليسرى للتوقيع -->
+            <div class="signature-block">
+                <h3>وزيرة الصحة</h3>
+                <img src="https://github.com/iizayyat/MEDICAL-REPORT/blob/main/images/DEMMA%20SIN1.png?raw=true" class="signature-img" alt="توقيع وزيرة الصحة">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const dateInput = document.getElementById('report-date');
+            const reportNumberDisplay = document.getElementById('report-number');
+            const statusNumberDisplay = document.getElementById('status-number');
+            const conditionSelect = document.getElementById('condition-select');
+            const conditionOther = document.getElementById('condition-other');
+
+            const today = new Date();
+            dateInput.valueAsDate = today;
+
+            // توليد الأرقام والحروف لـ Status Number
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            let letters = '';
+            for (let i = 0; i < 4; i++) {
+                letters += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            const num1 = Math.floor(1000 + Math.random() * 9000);
+            
+            // توليد الـ 4 أرقام المشتركة (المطابقة)
+            const shared4Digits = Math.floor(1000 + Math.random() * 9000);
+
+            // عرض Status Number
+            statusNumberDisplay.innerText = `${letters}-${num1}-${shared4Digits}`;
+
+            // دالة تحديث Report No
+            function updateReportNumber() {
+                if (!dateInput.value) return;
+                const dateParts = dateInput.value.split('-'); 
+                // ترتيب التاريخ ليظهر: السنة ثم الشهر ثم اليوم (مثال: 20260927)
+                const formattedDate = `${dateParts[0]}${dateParts[1]}${dateParts[2]}`; 
+                reportNumberDisplay.innerText = `${formattedDate} - ${shared4Digits}`;
+            }
+
+            updateReportNumber();
+            dateInput.addEventListener('change', updateReportNumber);
+
+            conditionSelect.addEventListener('change', (e) => {
+                if (e.target.value === 'اخرى') {
+                    conditionOther.style.display = 'block';
+                    conditionOther.focus();
+                } else {
+                    conditionOther.style.display = 'none';
+                    conditionOther.value = ''; 
+                }
+            });
+        });
+    </script>
+</body>
+</html>
