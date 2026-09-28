@@ -4,24 +4,95 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تقرير فحص وتشخيص طبي - Medical Assessment Report</title>
+    
+    <!-- مكتبات تصدير PDF و JPG -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
 
         body {
             background-color: #555;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
+            align-items: center;
             padding: 20px;
             font-family: 'Cairo', sans-serif;
-        }
-
-        /* إعدادات الطباعة لضمان مقاس A4 */
-        @page {
-            size: A4;
             margin: 0;
+            position: relative;
         }
 
-        /* تنسيق صفحة الـ A4 مع تقليل الهوامش */
+        /* أزرار التصدير الأنيقة والصغيرة */
+        .export-toolbar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .export-toolbar button {
+            background-color: #34495e;
+            color: #fff;
+            border: none;
+            border-radius: 20px;
+            padding: 6px 15px;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: 'Cairo', sans-serif;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: 0.2s;
+        }
+
+        .export-toolbar button:hover { background-color: #1a252f; transform: scale(1.05); }
+        #btn-pdf { background-color: #c0392b; }
+        #btn-pdf:hover { background-color: #962d22; }
+        #btn-jpg { background-color: #27ae60; }
+        #btn-jpg:hover { background-color: #1e8449; }
+
+        /* شريط الأدوات العائم الذكي (يظهر عند التظليل) */
+        .floating-toolbar {
+            position: absolute;
+            display: none;
+            background: #2c3e50;
+            padding: 5px 8px;
+            border-radius: 6px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+            z-index: 9999;
+            gap: 8px;
+            transform: translate(-50%, -100%);
+            margin-top: -10px;
+        }
+
+        .floating-toolbar::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 5px 5px 0;
+            border-style: solid;
+            border-color: #2c3e50 transparent transparent transparent;
+        }
+
+        .floating-toolbar button {
+            background: transparent;
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 4px;
+            padding: 2px 10px;
+            cursor: pointer;
+            font-family: Arial, sans-serif;
+            font-weight: bold;
+            font-size: 15px;
+        }
+
+        .floating-toolbar button:hover { background: rgba(255,255,255,0.1); }
+
+        /* إعدادات الطباعة */
+        @page { size: A4; margin: 0; }
+
+        /* تنسيق صفحة الـ A4 */
         .page {
             width: 210mm;
             min-height: 297mm;
@@ -30,12 +101,11 @@
             box-sizing: border-box;
             box-shadow: 0 0 15px rgba(0,0,0,0.5);
             color: #333;
-            margin: 0 auto;
             display: flex;
             flex-direction: column;
         }
 
-        /* الترويسة العلوية مقسمة لـ 3 أجزاء متناسقة */
+        /* الترويسة العلوية */
         .header-section {
             display: flex;
             justify-content: space-between;
@@ -45,92 +115,33 @@
             margin-bottom: 20px;
         }
 
-        /* الجزء الأيمن: الشعار */
-        .header-right {
-            flex: 1;
-            text-align: right;
-        }
+        .header-right { flex: 1; text-align: right; }
+        .header-logo { max-width: 110px; max-height: 110px; object-fit: contain; }
+        
+        .header-center { flex: 2; text-align: center; }
+        .header-center h1 { margin: 0; font-size: 24px; color: #1a252f; }
+        .header-center h2 { margin: 0; font-size: 18px; color: #34495e; font-weight: 600; margin-top: 5px; }
 
-        .header-logo {
-            max-width: 110px;
-            max-height: 110px;
-            object-fit: contain;
-        }
-
-        /* الجزء الأوسط: العنوان */
-        .header-center {
-            flex: 2;
-            text-align: center;
-        }
-
-        .header-center h1 {
-            margin: 0;
-            font-size: 24px;
-            color: #1a252f;
-        }
-
-        .header-center h2 {
-            margin: 0;
-            font-size: 18px;
-            color: #34495e;
-            font-weight: 600;
-            margin-top: 5px;
-        }
-
-        /* الجزء الأيسر: معلومات التاريخ والأرقام */
         .header-left {
-            flex: 1;
-            text-align: left;
-            direction: ltr;
-            font-family: Arial, sans-serif;
-            font-size: 13px;
-            font-weight: bold;
-            color: #444;
+            flex: 1; text-align: left; direction: ltr; font-family: Arial, sans-serif;
+            font-size: 13px; font-weight: bold; color: #444;
         }
-
-        .header-left div {
-            margin-bottom: 5px;
-            white-space: nowrap; /* يمنع النص والأرقام من النزول لسطر جديد */
-        }
-
+        .header-left div { margin-bottom: 5px; white-space: nowrap; }
+        
         .header-left input[type="date"] {
-            font-family: inherit;
-            border: 1px solid #ccc;
-            padding: 2px 5px;
-            border-radius: 4px;
-            background: rgba(255, 255, 255, 0.5);
-            outline: none;
-            font-size: 13px;
+            font-family: inherit; border: 1px solid #ccc; padding: 2px 5px;
+            border-radius: 4px; background: rgba(255, 255, 255, 0.5); outline: none;
+            font-size: 13px; font-weight: bold; color: #0056b3;
         }
-
-        .red-number {
-            color: #d32f2f;
-        }
+        .red-number { color: #d32f2f; }
 
         /* تنسيق الحقول والنماذج */
-        .row {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 10px;
-            flex-wrap: wrap;
-        }
+        .row { display: flex; gap: 15px; margin-bottom: 10px; flex-wrap: wrap; }
+        .col { flex: 1; display: flex; align-items: center; gap: 8px; }
+        label { font-weight: 700; white-space: nowrap; color: #1a252f; font-size: 14px; }
 
-        .col {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        label {
-            font-weight: 700;
-            white-space: nowrap;
-            color: #1a252f;
-            font-size: 14px;
-        }
-
-        input[type="text"], input[type="number"], select {
-            flex: 1;
+        /* لون الكتابة (الأزرق) */
+        input[type="text"], input[type="number"], select, textarea {
             background: transparent;
             border: none;
             border-bottom: 1px dashed #7f8c8d;
@@ -138,111 +149,77 @@
             font-family: inherit;
             font-size: 14px;
             outline: none;
-            color: #2c3e50;
+            color: #0056b3;
+            font-weight: 600;
+            transition: font-size 0.2s;
         }
+        
+        ::placeholder { color: #888; font-weight: 400; }
 
-        input[type="text"]:focus, input[type="number"]:focus, select:focus {
+        input[type="text"]:focus, input[type="number"]:focus, select:focus, textarea:focus {
             border-bottom: 1px solid #2980b9;
+            background: rgba(255, 255, 255, 0.4);
         }
+        input[type="text"], input[type="number"], select { flex: 1; }
 
         .section-title {
-            font-weight: 700;
-            background-color: #e8e3c8;
-            padding: 4px 10px;
-            border-radius: 4px;
-            margin: 10px 0 5px 0;
-            color: #2c3e50;
-            border-right: 4px solid #2c3e50;
-            font-size: 14px;
+            font-weight: 700; background-color: #e8e3c8; padding: 4px 10px;
+            border-radius: 4px; margin: 10px 0 5px 0; color: #2c3e50;
+            border-right: 4px solid #2c3e50; font-size: 14px;
         }
 
         textarea {
-            width: 100%;
-            min-height: 45px;
-            background: transparent;
+            width: 100%; min-height: 45px; border-radius: 4px; padding: 8px;
+            resize: vertical; box-sizing: border-box; line-height: 1.5; flex-grow: 1;
             border: 1px dashed #7f8c8d;
-            border-radius: 4px;
-            padding: 8px;
-            font-family: inherit;
-            font-size: 14px;
-            resize: vertical;
-            box-sizing: border-box;
-            outline: none;
-            color: #2c3e50;
-            line-height: 1.5;
-            flex-grow: 1;
-        }
-
-        textarea:focus {
-            border: 1px solid #2980b9;
-            background: rgba(255, 255, 255, 0.4);
         }
 
         /* التوقيع والختم في الأسفل */
         .footer {
-            margin-top: auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            padding: 20px 10px 0 10px;
+            margin-top: auto; display: flex; justify-content: space-between;
+            align-items: flex-end; padding: 20px 10px 0 10px;
         }
-
-        .stamp-block, .signature-block {
-            text-align: center;
-            width: 200px;
-        }
-
-        .signature-block h3 {
-            margin: 0 0 5px 0;
-            font-size: 16px;
-            color: #1a252f;
-        }
-
-        .signature-img {
-            max-width: 160px;
-            mix-blend-mode: multiply;
-        }
-
+        .stamp-block, .signature-block { text-align: center; width: 200px; }
+        .signature-block h3 { margin: 0 0 5px 0; font-size: 16px; color: #1a252f; }
+        .signature-img { max-width: 160px; mix-blend-mode: multiply; }
         .stamp-img {
-            max-width: 140px;
-            mix-blend-mode: multiply;
-            transform: rotate(-25deg);
-            opacity: 0.85;
-            margin-right: 20px;
-            margin-bottom: -15px;
+            max-width: 140px; mix-blend-mode: multiply;
+            transform: rotate(-25deg); opacity: 0.85; margin-right: 20px; margin-bottom: -15px;
         }
 
-        /* إخفاء التنسيقات عند الطباعة */
+        /* إخفاء شريط الأدوات عند الطباعة */
         @media print {
-            body { background: none; padding: 0; }
-            .page { 
-                box-shadow: none; 
-                margin: 0;
-                width: 210mm;
-                height: 297mm;
-                padding: 15mm;
-            }
+            body { background: none; padding: 0; align-items: flex-start; }
+            .no-print { display: none !important; }
+            .page { box-shadow: none; margin: 0; width: 210mm; height: 297mm; padding: 15mm; }
             input, textarea, select { border: none !important; resize: none; background: transparent !important; }
         }
     </style>
 </head>
 <body>
 
-    <div class="page">
-        <!-- الترويسة العلوية المنسقة -->
+    <!-- أزرار التصدير الصغيرة -->
+    <div class="export-toolbar no-print">
+        <button id="btn-pdf">تصدير PDF 📄</button>
+        <button id="btn-jpg">تصدير JPG 🖼️</button>
+    </div>
+
+    <!-- شريط الأدوات العائم لتكبير وتصغير الخط عند التظليل -->
+    <div id="floating-toolbar" class="floating-toolbar no-print">
+        <button id="btn-inc-font" title="تكبير الخط">A+</button>
+        <button id="btn-dec-font" title="تصغير الخط">A-</button>
+    </div>
+
+    <div class="page" id="report-page">
+        <!-- الترويسة العلوية -->
         <div class="header-section">
-            <!-- الجزء الأيمن (الشعار) -->
             <div class="header-right">
                 <img src="https://github.com/iizayyat/MEDICAL-REPORT/blob/main/images/LOS.png?raw=true" class="header-logo" alt="شعار">
             </div>
-
-            <!-- الجزء الأوسط (العنوان) -->
             <div class="header-center">
                 <h1>تقرير فحص وتشخيص طبي</h1>
                 <h2>Medical Assessment Report</h2>
             </div>
-
-            <!-- الجزء الأيسر (التاريخ والأرقام) -->
             <div class="header-left">
                 <div>Date: <input type="date" id="report-date"></div>
                 <div>Report No.: <span id="report-number" class="red-number"></span></div>
@@ -253,7 +230,7 @@
         <!-- معلومات المريض -->
         <div class="row">
             <div class="col" style="flex: 2;">
-                <label>اسم المريض \ المريضة:</label>
+                <label>اسم المريض / ـه:</label>
                 <input type="text" placeholder="أدخل اسم المريض الرباعي">
             </div>
             <div class="col">
@@ -309,11 +286,9 @@
 
         <!-- التوقيع والختم -->
         <div class="footer">
-            <!-- الجهة اليمنى للختم -->
             <div class="stamp-block">
                 <img src="https://github.com/iizayyat/MEDICAL-REPORT/blob/main/images/DEEMA%20QH%20STAMP1.png?raw=true" class="stamp-img" alt="ختم المستشفى">
             </div>
-            <!-- الجهة اليسرى للتوقيع -->
             <div class="signature-block">
                 <h3>وزيرة الصحة</h3>
                 <img src="https://github.com/iizayyat/MEDICAL-REPORT/blob/main/images/DEMMA%20SIN1.png?raw=true" class="signature-img" alt="توقيع وزيرة الصحة">
@@ -328,29 +303,24 @@
             const statusNumberDisplay = document.getElementById('status-number');
             const conditionSelect = document.getElementById('condition-select');
             const conditionOther = document.getElementById('condition-other');
-
+            
+            // 1. إعدادات التاريخ والأرقام
             const today = new Date();
             dateInput.valueAsDate = today;
 
-            // توليد الأرقام والحروف لـ Status Number
             const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
             let letters = '';
             for (let i = 0; i < 4; i++) {
                 letters += chars.charAt(Math.floor(Math.random() * chars.length));
             }
             const num1 = Math.floor(1000 + Math.random() * 9000);
-            
-            // توليد الـ 4 أرقام المشتركة (المطابقة)
             const shared4Digits = Math.floor(1000 + Math.random() * 9000);
 
-            // عرض Status Number
             statusNumberDisplay.innerText = `${letters}-${num1}-${shared4Digits}`;
 
-            // دالة تحديث Report No
             function updateReportNumber() {
                 if (!dateInput.value) return;
                 const dateParts = dateInput.value.split('-'); 
-                // ترتيب التاريخ ليظهر: السنة ثم الشهر ثم اليوم (مثال: 20260927)
                 const formattedDate = `${dateParts[0]}${dateParts[1]}${dateParts[2]}`; 
                 reportNumberDisplay.innerText = `${formattedDate} - ${shared4Digits}`;
             }
@@ -366,6 +336,94 @@
                     conditionOther.style.display = 'none';
                     conditionOther.value = ''; 
                 }
+            });
+
+            // 2. برمجة الشريط العائم (الظهور عند التظليل)
+            const floatingToolbar = document.getElementById('floating-toolbar');
+            let currentSelectedElement = null;
+
+            document.addEventListener('mouseup', (e) => {
+                setTimeout(() => {
+                    let hasSelection = false;
+                    
+                    if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') {
+                        if (e.target.selectionStart !== e.target.selectionEnd) {
+                            hasSelection = true;
+                            currentSelectedElement = e.target;
+                        }
+                    }
+
+                    if (hasSelection) {
+                        floatingToolbar.style.display = 'flex';
+                        floatingToolbar.style.top = e.pageY + 'px';
+                        floatingToolbar.style.left = e.pageX + 'px';
+                    } else if (!floatingToolbar.contains(e.target)) {
+                        floatingToolbar.style.display = 'none';
+                    }
+                }, 10);
+            });
+
+            // منع الشريط من سرقة التركيز لكي لا يختفي التظليل عند النقر
+            floatingToolbar.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+            });
+
+            document.getElementById('btn-inc-font').addEventListener('click', () => {
+                if (currentSelectedElement) {
+                    let size = parseFloat(window.getComputedStyle(currentSelectedElement).fontSize);
+                    if (size < 28) currentSelectedElement.style.fontSize = (size + 2) + 'px';
+                }
+            });
+
+            document.getElementById('btn-dec-font').addEventListener('click', () => {
+                if (currentSelectedElement) {
+                    let size = parseFloat(window.getComputedStyle(currentSelectedElement).fontSize);
+                    if (size > 10) currentSelectedElement.style.fontSize = (size - 2) + 'px';
+                }
+            });
+
+            // 3. التصدير
+            const allInputs = document.querySelectorAll('input[type="text"], input[type="number"], select, textarea');
+            
+            function prepareForExport() {
+                allInputs.forEach(input => input.style.border = 'none');
+                document.querySelectorAll('.no-print').forEach(el => el.style.display = 'none');
+            }
+
+            function restoreAfterExport() {
+                allInputs.forEach(input => {
+                    if(input.tagName.toLowerCase() === 'textarea') {
+                        input.style.border = '1px dashed #7f8c8d';
+                    } else {
+                        input.style.borderBottom = '1px dashed #7f8c8d';
+                    }
+                });
+                document.querySelectorAll('.no-print').forEach(el => el.style.display = '');
+            }
+
+            document.getElementById('btn-pdf').addEventListener('click', () => {
+                prepareForExport();
+                const element = document.getElementById('report-page');
+                const opt = {
+                    margin: 0,
+                    filename: 'Medical_Report_' + shared4Digits + '.pdf',
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2, useCORS: true }, 
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+                html2pdf().set(opt).from(element).save().then(restoreAfterExport);
+            });
+
+            document.getElementById('btn-jpg').addEventListener('click', () => {
+                prepareForExport();
+                const element = document.getElementById('report-page');
+                html2canvas(element, { scale: 2, useCORS: true }).then(canvas => {
+                    const link = document.createElement('a');
+                    link.download = 'Medical_Report_' + shared4Digits + '.jpg';
+                    link.href = canvas.toDataURL('image/jpeg', 0.9);
+                    link.click();
+                    restoreAfterExport();
+                });
             });
         });
     </script>
